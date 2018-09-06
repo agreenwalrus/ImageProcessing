@@ -4,9 +4,9 @@
 
 
 class ImageHelper:
+    pass
 
-    def __init__(self, path):
+    '''def __init__(self, path):
         self.image = Image.open(path)
         self.pixels = list(self.image.getdata())
-        self.image_size = self.image.size()
-
+        self.image_size = self.image.size()'''
