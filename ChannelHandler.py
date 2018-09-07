@@ -1,5 +1,6 @@
 import numpy as np
-from functools import reduce
+import random
+import copy
 
 
 class ChannelHandler:
@@ -17,11 +18,15 @@ class ChannelHandler:
 
         return histogram
 
+    @staticmethod
+    def __byte_checker(byte):
+        return 0 if byte <= 0 else 255 if byte >= 255 else byte
+
     def __bit_by_bit_processing(self, channel, logic_of_processing):
         processed_channel = list()
 
         for brightness in channel:
-            processed_channel.append(logic_of_processing(brightness))
+            processed_channel.append(ChannelHandler.__byte_checker(logic_of_processing(brightness)))
 
         return processed_channel
 
@@ -44,6 +49,16 @@ class ChannelHandler:
 
         return negative
 
+#bad algorithm
+    def get_log_correction(self, channel, constant):
+
+        def process_logarithmic_correction(brightness, c=constant):
+            return int(c * int(np.log2(1 + brightness)))
+
+        logarithmic_corrected = self.__bit_by_bit_processing(channel, process_logarithmic_correction)
+        return logarithmic_corrected
+
+
     def __filter(self, channel, processing_neighborhood, size):
         indent = int(np.sqrt(size)) >> 1
         filtered = np.zeros(self.channel_width * self.channel_height)
@@ -54,9 +69,10 @@ class ChannelHandler:
                 for neigh_row in range(row - indent, row + indent + 1):
                     for neigh_col in range(col - indent, col + indent + 1):
                         neighborhood.append(channel[neigh_row * self.channel_width + neigh_col])
-                filtered[row * self.channel_width + col] = processing_neighborhood(neighborhood)
+                filtered[row * self.channel_width + col] = \
+                    ChannelHandler.__byte_checker(processing_neighborhood(neighborhood))
 
-        return filtered
+        return list(map(lambda x: int(x), filtered))
 
     def filter_by_harmonic_mean(self, channel, size=9):
 
@@ -65,8 +81,11 @@ class ChannelHandler:
             if 0 in neighborhood:
                 harmonic = 0
             else:
-                harmonic = len(neighborhood) / reduce(lambda h, f: h + (1 / f), neighborhood)
-            return harmonic
+                s = 0
+                for n in neighborhood:
+                    s += 1 / n
+                harmonic = len(neighborhood) / s
+            return int(harmonic)
 
         return self.__filter(channel, logic_of_filtering_by_by_harmonic_mean, size)
 
@@ -77,6 +96,8 @@ class ChannelHandler:
             return neighborhood[len(neighborhood) >> 1]
 
         return self.__filter(channel, logic_of_filtering_by_median, size)
+
+
 
 
 
