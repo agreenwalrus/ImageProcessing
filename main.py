@@ -1,47 +1,26 @@
-from ImageHelper import ImageHelper
-import matplotlib.pyplot as plt
-import numpy as np
 
-IMAGE_NAME = "students_RGB"
-MAX_BRIGHTNESS = 225
-FILTER_SIZE = 9
-CONSTANT_FOR_LOG_CORR = 30
 
-image = ImageHelper.open_image("./source/" + IMAGE_NAME + ".jpg")
-ImageHelper.show_histogram(image, "Source")
 
-grey = ImageHelper.get_greyscale_image(image)
-ImageHelper.save_image(grey, "./source/result/Greyscale_" + IMAGE_NAME + ".jpg")
+from Im.ImageHelper import ImageHelper
+from Im.otsu import Otsu
 
-lowed_brightness = ImageHelper.get_image_with_lowed_brightness(grey, MAX_BRIGHTNESS)
-ImageHelper.save_image(lowed_brightness, "./source/result/LowedBrightness_" + IMAGE_NAME)
-ImageHelper.show_histogram(lowed_brightness, "LowedBrightness " + IMAGE_NAME)
 
-"""
-noised = ImageHelper.get_image_with_some_noise(image, 5)
-ImageHelper.save_image(noised, "./source/result/Noise_" + IMAGE_NAME)
-ImageHelper.show_histogram(noised, "Noise " + IMAGE_NAME)
+names = ["P0001460.jpg", "P0001461.jpg", "P0001468.jpg" ,"P0001469.jpg" ,"P0001471.jpg"]
+names1 = ["P0001464.jpg", "P0001465.jpg", "P0001467.jpg" ,"P0001470.JPG" ,"P0001472.jpg"]
+for image_name in names:
 
-filtered_by_median = ImageHelper.get_image_filtered_by_median(noised, FILTER_SIZE)
-ImageHelper.save_image(filtered_by_median, "./source/result/ByMedian_" + IMAGE_NAME)
-ImageHelper.show_histogram(filtered_by_median, "ByMedian " + IMAGE_NAME)
+    image = ImageHelper.open_image("./source/lab2/easy/" + image_name)
+    filtered = ImageHelper.get_image_filtered_by_harmonic_mean(image, 49)
+    greyscale = ImageHelper.get_greyscale_image(filtered)
 
-lowed_brightness = ImageHelper.get_image_with_lowed_brightness(image, MAX_BRIGHTNESS)
-ImageHelper.save_image(lowed_brightness, "./source/result/LowedBrightness_" + IMAGE_NAME)
-ImageHelper.show_histogram(lowed_brightness, "LowedBrightness " + IMAGE_NAME)
+    div = Otsu.devide_classes(greyscale)
+    print("division: ", div)
+    bin_im = ImageHelper.get_binorized_image(greyscale, div)
 
-negative = ImageHelper.get_negative_image(image)
-ImageHelper.save_image(negative, "./source/result/Negative_" + IMAGE_NAME)
-ImageHelper.show_histogram(negative, "Negative " + IMAGE_NAME)
+    ##filtered = ImageHelper.get_image_filtered_by_median(bin_im, 49)
 
-filtered_by_median = ImageHelper.get_image_filtered_by_median(image, FILTER_SIZE)
-ImageHelper.save_image(filtered_by_median, "./source/result/ByMedian_" + IMAGE_NAME)
-ImageHelper.show_histogram(filtered_by_median, "ByMedian " + IMAGE_NAME)
-
-filtered_by_harmonic_mean = ImageHelper.get_image_filtered_by_harmonic_mean(image, FILTER_SIZE)
-ImageHelper.save_image(filtered_by_harmonic_mean, "./source/result/ByHarmonicMean_" + IMAGE_NAME)
-ImageHelper.show_histogram(filtered_by_harmonic_mean, "ByHarmonicMean " + IMAGE_NAME)
-"""
-
+    ImageHelper.show_histogram(image, "source " + image_name)
+    ImageHelper.show_histogram(bin_im, "bin " + image_name)
+    ImageHelper.save_image(ImageHelper.get_image_filtered_by_median(bin_im, 49), "./source/lab2/result/" + image_name)
 
 
