@@ -1,3 +1,4 @@
+from skimage import io, color
 import matplotlib.pyplot as plt
 import PIL
 from Im.Image import Image
@@ -6,6 +7,9 @@ import copy
 
 
 class ImageHelper:
+    RED = 0
+    GREEN = 1
+    BLUE = 2
 
     GREY = 0
     R = 0
@@ -163,7 +167,16 @@ class ImageHelper:
                      image.get_width(),
                      image.get_range_of_brightness())
 
+    @staticmethod
+    def get_image_channel(image, channel):
+        result = []
+        for ind in range(len(image.get_channels()[channel])):
+            result.append(image.get_channels()[channel][ind])
 
+        return Image([result],
+                     image.get_height(),
+                     image.get_width(),
+                     image.get_range_of_brightness())
 
     @staticmethod
     def get_image_filtered_by_median(image, size=9):
@@ -218,5 +231,96 @@ class ImageHelper:
                      image.get_height(),
                      image.get_width(),
                      image.get_range_of_brightness())
+
+    @staticmethod
+    def get_image_with_erosion(image_before_erosion, count = 1):
+        def erosion(image):
+            if len(image.get_channels()) != 1:
+                return
+
+            flags_matrix = [[0] * image.get_width() for _ in range(image.get_height())]
+            chanel = copy.copy(image.get_channels()[0])
+
+            for row in range(image.get_height()):
+                for column in range(image.get_width()):
+                    if chanel[row * image.get_width() + column] == 255:
+                        flag = False
+                        if row != 0:
+                            if chanel[(row - 1) * image.get_width() + column] == 0:
+                                if flags_matrix[row - 1][column] != 1:
+                                    flag = True
+                        if not flag:
+                            if row != image.get_height() - 1:
+                                if chanel[(row + 1) * image.get_width() + column] == 0:
+                                    if flags_matrix[row + 1][column] != 1:
+                                        flag = True
+                        if not flag:
+                            if column != 0:
+                                if chanel[row * image.get_width() + column - 1] == 0:
+                                    if flags_matrix[row][column - 1] != 1:
+                                        flag = True
+                        if not flag:
+                            if column != image.get_width() - 1:
+                                if chanel[row * image.get_width() + column + 1] == 0:
+                                    if flags_matrix[row][column + 1] != 1:
+                                        flag = True
+
+                        if flag:
+                            flags_matrix[row][column] = 1
+                            chanel[row * image.get_width() + column] = 0
+
+            return Image([chanel],
+                         image.get_height(),
+                         image.get_width(),
+                         image.get_range_of_brightness())
+
+        new_image = image_before_erosion
+        for i in range(count):
+            new_image = erosion(new_image)
+
+        return new_image
+
+    @staticmethod
+    def get_image_with_building(image_before_building, count=1):
+        def building(image):
+            if len(image.get_channels()) != 1:
+                return
+
+            flags_matrix = [[0] * image.get_width() for _ in range(image.get_height())]
+            chanel = copy.copy(image.get_channels()[0])
+
+            for row in range(image.get_height()):
+                for column in range(image.get_width()):
+                    if flags_matrix[row][column] == 0:
+                        if chanel[row * image.get_width() + column] == 255:
+                            if row != 0:
+                                if chanel[(row - 1) * image.get_width() + column] == 0:
+                                    chanel[(row - 1) * image.get_width() + column] = 255
+                                    flags_matrix[row - 1][column] = 1
+                            if row != image.get_height() - 1:
+                                if chanel[(row + 1) * image.get_width() + column] == 0:
+                                    chanel[(row + 1) * image.get_width() + column] = 255
+                                    flags_matrix[row + 1][column] = 1
+                            if column != 0:
+                                if chanel[row * image.get_width() + column - 1] == 0:
+                                    chanel[row * image.get_width() + column - 1] = 255
+                                    flags_matrix[row][column - 1] = 1
+                            if column != image.get_width() - 1:
+                                if chanel[row * image.get_width() + column + 1] == 0:
+                                    chanel[row * image.get_width() + column + 1] = 255
+                                    flags_matrix[row][column + 1] = 1
+
+            return Image([chanel],
+                         image.get_height(),
+                         image.get_width(),
+                         image.get_range_of_brightness())
+
+        new_image = image_before_building
+        for i in range(count):
+            new_image = building(new_image)
+
+        return new_image
+
+
 
 
